@@ -48,7 +48,9 @@ if __name__ == '__main__':
 
         # получаем список рабов подлежащих оцепенению
         slaves_to_fetter = get_slaves_to_fetter(slaves_list)
-
+        
+        print(f'{len(slaves_to_fetter)} раба(ов) подлежат оцепенению')
+        
         # кидаем цепи на рабов
         for slave in slaves_to_fetter:
             fetter(slave)
