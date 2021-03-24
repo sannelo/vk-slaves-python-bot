@@ -16,10 +16,17 @@ client = Slaves(token)
 
 jobs = ['Сварщик', 'Шахтёр', 'Бармен', 'Наркоторговец', 'Дилер', 'Брокер', 'Трейдер', 'Инвестор', 'Врач', 'Технарь', 'IT', 'Хирург', 'Бомж', 'Инженер', 'Бригадир']
 
+def _start():
+    try:
+        return client.start()
+    except Exception as e:
+        print(str(e))
+        time.sleep(15)
+        return _start()
+
 def get_user(id):
     try:
-        user = client.user(id=id)
-        return user
+        return client.user(id=id)
     except Exception as e:
         print(str(e))
         time.sleep(15)
@@ -33,11 +40,17 @@ def get_slaves(id):
         time.sleep(15)
         return get_slaves(id)
 
+def buy(id):
+    try:
+        return client.buy_slave(slave_id=id)
+    except Exception as e:
+        print(str(e))
+        time.sleep(15)
+        return buy(id)
 
 def make_job(id, name):
     try:
-        job = client.job_slave(slave_id=id, job_name=name)
-        return job
+        return client.job_slave(slave_id=id, job_name=name)
     except Exception as e:
         print(str(e))
         time.sleep(15)
@@ -45,8 +58,7 @@ def make_job(id, name):
 
 def fetter(id):
     try:
-        fetter = client.buy_fetter(slave_id=id)
-        return fetter
+        return client.buy_fetter(slave_id=id)
     except Exception as e:
         print(str(e))
         time.sleep(15)
@@ -86,7 +98,7 @@ def get_slaves_to_fetter(slaves_list):
 
 if __name__ == '__main__':
     # start
-    client.start()
+    _start()
 
     while True:
         # получение данных о себе
@@ -122,7 +134,7 @@ if __name__ == '__main__':
                     print(f'Найдено {len(slaves_to_steal)} раба(ов) для кражи')
 
                 for slave in slaves_to_steal:
-                    client.buy_slave(slave)
+                    buy(slave)
                     fetter(slave)
                     make_job(slave, jobs[random.randrange(0, len(jobs))])
 
