@@ -1,24 +1,43 @@
 import time
-import requests
+import requests # pip install requests
 import random
 
 from vk_slaves import Slaves # pip install vk-slaves
-from config import settings
+from config import settings # config.py
+from threading import Thread
+
+# some constants to be used later
 
 token = settings['TOKEN']
 local_id = settings['ID']
+
 min_profit = settings['MIN_PROFIT']
 steal = settings['STEAL']
 targets = settings['TARGETS']
 price = settings['MAX_PRICE']
 
+abuse = settings['ABUSE_SLAVES']
+abuse_balance = settings['ABUSE_IF_BALANCE']
+
+
+# init our main client
 client = Slaves(token)
+
 
 jobs = ['Сварщик', 'Шахтёр', 'Бармен', 'Наркоторговец', 'Дилер', 'Брокер', 'Трейдер', 'Инвестор', 'Врач', 'Технарь', 'IT', 'Хирург', 'Бомж', 'Инженер', 'Бригадир']
 
+
+
+
+# //////////////////////////////////////////////////////////////////////////////
+# //////////////////////////////////////////////////////////////////////////////
+# Default Calls using API //////////////////////////////////////////////////////
+
+
 def _start():
     try:
-        return client.start()
+        start = client.start()
+        return start
     except Exception as e:
         print(str(e))
         time.sleep(15)
@@ -26,7 +45,8 @@ def _start():
 
 def get_user(id):
     try:
-        return client.user(id=id)
+        user = client.user(id=id)
+        return user
     except Exception as e:
         print(str(e))
         time.sleep(15)
@@ -34,7 +54,8 @@ def get_user(id):
 
 def get_slaves(id):
     try:
-        return client.slave_list(id=id)
+        slaves = client.slave_list(id=id)
+        return slaves
     except Exception as e:
         print(str(e))
         time.sleep(15)
@@ -42,7 +63,8 @@ def get_slaves(id):
 
 def buy(id):
     try:
-        return client.buy_slave(slave_id=id)
+        buy = client.buy_slave(slave_id=id)
+        return buy
     except Exception as e:
         print(str(e))
         time.sleep(15)
@@ -50,7 +72,8 @@ def buy(id):
 
 def make_job(id, name):
     try:
-        return client.job_slave(slave_id=id, job_name=name)
+        job = client.job_slave(slave_id=id, job_name=name)
+        return job
     except Exception as e:
         print(str(e))
         time.sleep(15)
@@ -58,11 +81,33 @@ def make_job(id, name):
 
 def fetter(id):
     try:
-        return client.buy_fetter(slave_id=id)
+        fetter = client.buy_fetter(slave_id=id)
+        return fetter
     except Exception as e:
         print(str(e))
         time.sleep(15)
         return fetter(id)
+
+def sale(id):
+    try:
+        sale = client.sale_slave(slave_id=id)
+        return sale
+    except Exception as e:
+        print(str(e))
+        time.sleep(15)
+        return sale(id)
+
+
+# //////////////////////////////////////////////////////////////////////////////
+# //////////////////////////////////////////////////////////////////////////////
+# //////////////////////////////////////////////////////////////////////////////
+
+
+
+
+# //////////////////////////////////////////////////////////////////////////////
+# //////////////////////////////////////////////////////////////////////////////
+# processing slaves functions //////////////////////////////////////////////////
 
 def get_slaves_to_steal(slaves_list):
     slaves = {}
@@ -72,74 +117,152 @@ def get_slaves_to_steal(slaves_list):
         if min_profit <= slave['profit_per_min']: # минимальный профит в конфиге удовлетворяет рабу
             if slave['fetter_to'] < current_time: # проверяем время цепей раба
                 if slave['price'] <= price: # если цена подходит под условие
-                    slaves[slave['id']] = slave['price'] # добавляем раба в наш словарь
+                    slaves[slave['id']] = slave['price'] / slave['profit_per_min'] # добавляем раба в наш словарь
 
     return slaves
 
-def get_slaves_to_fetter(slaves_list):
-    slaves = {}
+    
+def get_slaves_to_job(slaves_list):
     job_slaves = []
 
-    current_time = int(time.time()) # текущее unix-время
     for slave in slaves_list['slaves']: # Получаем каждого раба в словаре
         if slave['job']['name'] == '': # если безработен
             job_slaves.append(slave['id']) # добавляем раба в безработных
+
+    return job_slaves
+
+
+def get_slaves_to_fetter(slaves_list):
+    slaves = {}
+
+    current_time = int(time.time()) # текущее unix-время
+    for slave in slaves_list['slaves']: # Получаем каждого раба в словаре
         if min_profit <= slave['profit_per_min']: # минимальный профит в конфиге удовлетворяет рабу
             if slave['fetter_to'] < current_time: # проверяем время цепей раба
-                slaves[slave['id']] = slave['fetter_price'] # добавляем раба в наш словарь
+                slaves[slave['id']] = 1 - slave['profit_per_min'] / slave['fetter_price'] # добавляем раба в наш словарь (по формуле выгодности)
 
     # сортируем рабов по цене
     {k: v for k, v in sorted(slaves.items(), key=lambda item: item[1])}
     
     # возвращаем айди рабов
-    return list(slaves.keys()), job_slaves
+    return list(slaves.keys())
+
+
+# //////////////////////////////////////////////////////////////////////////////
+# //////////////////////////////////////////////////////////////////////////////
+# //////////////////////////////////////////////////////////////////////////////
 
 
 
-if __name__ == '__main__':
-    # start
-    _start()
 
+# //////////////////////////////////////////////////////////////////////////////
+# //////////////////////////////////////////////////////////////////////////////
+# main functions to be used ////////////////////////////////////////////////////
+
+
+def job_niggers():
     while True:
-        # получение данных о себе
-        #me = get_user(local_id)
-
-        # получение баланса
-        #balance = me['balance']
-
-        # получение списка ваших рабов
         slaves_list = get_slaves(local_id)
-
-        # получаем список рабов подлежащих оцепенению и работе
-        slaves_to_fetter, slaves_to_job = get_slaves_to_fetter(slaves_list)
-        
-        print(f'{len(slaves_to_fetter)} раба(ов) подлежат оцепенению')
+        slaves_to_job = get_slaves_to_job(slaves_list)
         print(f'{len(slaves_to_job)} раба(ов) подлежат работе')
-
-        # кидаем цепи на рабов
-        for slave in slaves_to_fetter:
-            fetter(slave)
-
+        
         # даём работу рабам
         for slave in slaves_to_job:
             make_job(slave, jobs[random.randrange(0, len(jobs))])
 
+            # обход блокировки
+            time.sleep(random.randrange(0, 2) + min(0.7, 150 / len(slaves_to_job)))
+        else:         
+            time.sleep(random.randrange(12, 23))
+
+
+def fet_niggers():
+    while True:
+        slaves_list = get_slaves(local_id)
+        slaves_to_fetter = get_slaves_to_fetter(slaves_list)
+        print(f'{len(slaves_to_fetter)} раба(ов) подлежат оцепенению')
+        
+        # кидаем цепи на рабов
+        for slave in slaves_to_fetter:
+            fetter(slave)
+
+            # обход блокировки
+            time.sleep((random.randrange(0, 2) * random.randrange(0, 2)) + min(0.9, 145 / len(slaves_to_fetter)))
+        else:
+            time.sleep(random.randrange(11, 18))
+
+def steal_niggers():
+    while len(targets) > 0:
+    
         # покупаем рабов без цепей у целей
-        if steal:
-            for target in targets:
-                targets_slaves = get_slaves(target)
-                slaves_to_steal = get_slaves_to_steal(targets_slaves)
+        for target in targets:
+            targets_slaves = get_slaves(target)
+            slaves_to_steal = get_slaves_to_steal(targets_slaves)
 
-                if len(slaves_to_steal) > 0:
-                    print(f'Найдено {len(slaves_to_steal)} раба(ов) для кражи')
+            if len(slaves_to_steal) > 0:
+                print(f'Найдено {len(slaves_to_steal)} раба(ов) для кражи')
 
-                for slave in slaves_to_steal:
-                    buy(slave)
-                    fetter(slave)
-                    make_job(slave, jobs[random.randrange(0, len(jobs))])
+            for slave in slaves_to_steal:
+                buy(slave) # покупаем
+                time.sleep(random.random()) # обход блокировки
+                fetter(slave) # кидаем цепь
+                time.sleep(random.random() + random.random() + random.random()) # обход блокировки (именно так)
+                make_job(slave, jobs[random.randrange(0, len(jobs))]) # даём работу
 
-        # \n
-        print('')
+                # обход блокировки
+                time.sleep((random.randrange(0, 2) * random.randrange(0, 2)) + min(0.9, 155 / len(slaves_to_steal)))
 
-        # тихий час
-        time.sleep(15)
+
+def abuse_niggers():
+    while True:
+        me = get_user(local_id)
+        balance = me['balance']
+
+        if (balance >= abuse_balance):
+            slaves_list = get_slaves(local_id)
+    
+            for slave in slaves_list['slaves']:
+                id = slave['id']
+                id_used = False
+    
+                if (slave['sale_price'] < 19500):
+                    id_used = True
+    
+                    sale(id) # продаём
+                    time.sleep(random.random()) # обход блокировки
+                    buy(id) # снова покупаем
+                    time.sleep(random.random() + random.random() + random.random()) # обход блокировки (именно так)
+                
+                if (id_used):
+                    print(f'Заабузил {id}')
+    
+                    fetter(id) # кидаем цепь
+                    time.sleep(random.random() + random.random()) # обход блокировки (именно так)
+    
+                    make_job(id, jobs[random.randrange(0, len(jobs))])
+                    time.sleep(random.randrange(1, 3) + random.random())
+    
+                    id_used = False # useless but ok
+        
+        time.sleep(random.randrange(24, 40))
+
+
+# //////////////////////////////////////////////////////////////////////////////
+# //////////////////////////////////////////////////////////////////////////////
+# //////////////////////////////////////////////////////////////////////////////
+
+
+
+# just start
+
+if __name__ == '__main__':
+    _start()
+
+    Thread(target=job_niggers).start()
+    Thread(target=fet_niggers).start()
+
+    if (steal):
+        Thread(target=steal_niggers).start()
+
+    if (abuse):
+        Thread(target=abuse_niggers).start()
