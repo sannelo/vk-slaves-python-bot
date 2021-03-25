@@ -192,7 +192,7 @@ def fet_niggers():
             time.sleep(random.randrange(11, 18))
 
 def steal_niggers():
-    while len(targets) > 0:
+    while True:
     
         # покупаем рабов без цепей у целей
         for target in targets:
@@ -211,6 +211,8 @@ def steal_niggers():
 
                 # обход блокировки
                 time.sleep((random.randrange(0, 2) * random.randrange(0, 2)) + min(0.9, 155 / len(slaves_to_steal)))
+        
+        time.sleep(random.randrange(11, 18))
 
 
 def abuse_niggers():
@@ -220,28 +222,28 @@ def abuse_niggers():
 
         if (balance >= abuse_balance):
             slaves_list = get_slaves(local_id)
-    
+
             for slave in slaves_list['slaves']:
                 id = slave['id']
                 id_used = False
-    
+
                 if (slave['sale_price'] < 19500):
                     id_used = True
-    
+
                     sale(id) # продаём
                     time.sleep(random.random()) # обход блокировки
                     buy(id) # снова покупаем
                     time.sleep(random.random() + random.random() + random.random()) # обход блокировки (именно так)
-                
+
                 if (id_used):
                     print(f'Заабузил {id}')
-    
+
                     fetter(id) # кидаем цепь
                     time.sleep(random.random() + random.random()) # обход блокировки (именно так)
-    
+
                     make_job(id, jobs[random.randrange(0, len(jobs))])
                     time.sleep(random.randrange(1, 3) + random.random())
-    
+
                     id_used = False # useless but ok
         
         time.sleep(random.randrange(24, 40))
@@ -261,7 +263,7 @@ if __name__ == '__main__':
     Thread(target=job_niggers).start()
     Thread(target=fet_niggers).start()
 
-    if (steal):
+    if (steal and len(targets)):
         Thread(target=steal_niggers).start()
 
     if (abuse):
