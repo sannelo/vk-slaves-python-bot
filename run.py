@@ -144,10 +144,9 @@ def get_slaves_to_job(slaves_list):
 
 def get_slaves_to_fetter(slaves_list):
     slaves = {}
-
     current_time = int(time.time()) # текущее unix-время
     for slave in slaves_list['slaves']: # Получаем каждого раба в словаре
-        if (slave['profit_per_min'] * 120) <= slave['fetter_price']: # мы не уйдём в минус
+        if (slave['profit_per_min'] * 120) >= slave['fetter_price']: # мы не уйдём в минус
             if slave['fetter_to'] < current_time: # проверяем время цепей раба
                 slaves[slave['id']] = 1 - slave['profit_per_min'] / (slave['fetter_price'] + 1) # добавляем раба в наш словарь (по формуле выгодности)
 
