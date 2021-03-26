@@ -65,8 +65,8 @@ def get_slaves(id):
 
 def buy(id):
     try:
-        buy = client.buy_slave(slave_id=id)
-        return buy
+        a_buy = client.buy_slave(slave_id=id)
+        return a_buy
     except Exception as e:
         print(str(e))
         time.sleep(15)
@@ -83,8 +83,8 @@ def make_job(id, name):
 
 def fetter(id):
     try:
-        fetter = client.buy_fetter(slave_id=id)
-        return fetter
+        a_fetter = client.buy_fetter(slave_id=id)
+        return a_fetter
     except Exception as e:
         print(str(e))
         time.sleep(15)
@@ -92,8 +92,8 @@ def fetter(id):
 
 def sale(id):
     try:
-        sale = client.sale_slave(slave_id=id)
-        return sale
+        a_sale = client.sale_slave(slave_id=id)
+        return a_sale
     except Exception as e:
         print(str(e))
         time.sleep(15)
