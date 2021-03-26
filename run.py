@@ -172,7 +172,7 @@ def get_slaves_to_fetter(slaves_list):
 
 def job_niggers():
     while True:
-        slaves_list = (_start())['me']
+        slaves_list = _start()
         slaves_to_job = get_slaves_to_job(slaves_list)
         print(f'{len(slaves_to_job)} раба(ов) подлежат работе')
         
@@ -188,7 +188,7 @@ def job_niggers():
 
 def fet_niggers():
     while True:
-        slaves_list = (_start())['me']
+        slaves_list = _start()
         slaves_to_fetter = get_slaves_to_fetter(slaves_list)
         print(f'{len(slaves_to_fetter)} раба(ов) подлежат оцепенению')
         
@@ -235,7 +235,7 @@ def abuse_niggers():
         balance = me['balance']
 
         if (balance >= abuse_balance):
-            slaves_list = (_start())['me']
+            slaves_list = _start()
 
             for slave in slaves_list['slaves']:
                 id = slave['id']
