@@ -30,7 +30,6 @@ jobs = ['Сварщик', 'Шахтёр', 'Бармен', 'Наркоторго�
 
 
 
-
 # //////////////////////////////////////////////////////////////////////////////
 # //////////////////////////////////////////////////////////////////////////////
 # Default Calls using API //////////////////////////////////////////////////////
@@ -241,17 +240,22 @@ def abuse_niggers():
                 id_used = False
 
                 if (slave['sale_price'] < 19500):
-                    id_used = True
 
-                    sale(id) # продаём
-                    time.sleep(random.random()) # обход блокировки
-                    buy(id) # снова покупаем
-                    time.sleep(random.random() + random.random() + random.random()) # обход блокировки (именно так)
+                    s_price = (get_user(id))['sale_price']
+                    while s_price < 19500:
+                        id_used = True
+
+                        sale(id) # продаём
+                        time.sleep(random.random()) # обход блокировки
+                        buy(id) # снова покупаем
+                        time.sleep(random.random() + random.random() + random.random() * 2) # обход блокировки (именно так)
+
+                        s_price = (get_user(id))['sale_price']
 
                 if (id_used):
                     print(f'Заабузил {id}')
 
-                    fetter(id) # кидаем цепь
+                    fetter(id) # кидаем цепь    
                     time.sleep(random.random() + random.random()) # обход блокировки (именно так)
 
                     make_job(id, jobs[random.randrange(0, len(jobs))])
