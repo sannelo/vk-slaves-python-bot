@@ -263,7 +263,7 @@ def abuse_niggers():
                 id_used = False
 
                 s_price = (get_user(slave))['sale_price']
-                while s_price < settings['abuse_slaves']['LIMIT']):
+                while s_price < settings['abuse_slaves']['LIMIT']:
                     id_used = True
 
                     sale(slave) # продаём
