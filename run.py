@@ -1,6 +1,8 @@
 import time
+import datetime
 import random
 import requests # pip install requests
+import logging
 
 from threading import Thread
 from module import Slaves # module.py
@@ -15,6 +17,19 @@ client = Slaves(token)
 from api import * # api.py
 
 balance = 0
+
+# //////////////////////LOG_SAVING//////////////////////////////////////////////
+
+logging.basicConfig(filename=f'{str(settings["info"]["LOG_NAME"])}.log',filemode="w", level=logging.INFO) # Создаем Logger
+
+
+def print_log(printbl):
+    if settings['info']['SAVE_LOG']:
+        logging.info(str(printbl))
+    print(str(printbl))
+    
+
+# //////////////////////////////////////////////////////////////////////////////
 
 # //////////////////////////////////////////////////////////////////////////////
 # //////////////////////////////////////////////////////////////////////////////
@@ -35,7 +50,7 @@ def get_slaves_to_steal(slaves_list):
     return slaves
 
 
-def get_slaves_to_steal_target(slaves_list):
+def get_slaves_to_steal_target(slaves_list): 
     slaves = []
 
     min_price = settings['steal_target']['MIN_PRICE']
@@ -110,20 +125,23 @@ def update_me():
     i = 0
 
     while True: 
-        me = get_user(local_id)
+        try:
+            me = get_user(local_id)
 
-        balance = me['balance']
-        slaves = me['slaves_count']
-        rating = me['rating_position']
-        profit = me['slaves_profit_per_min']
+            balance = me['balance']
+            slaves = me['slaves_count']
+            rating = me['rating_position']
+            profit = me['slaves_profit_per_min']
 
-        if (i == 3):
-            print(f'[INFO] > {balance}р | {profit}р/мин | {slaves} рабов | {rating} место')
-            i = 0
+            if (i == 3):
+                print_log(f'[{datetime.datetime.now().strftime("%d-%m-%Y %H:%M")}][INFO] > {balance}р | {profit}р/мин | {slaves} рабов | {rating} место')
+                i = 0
 
-        time.sleep(3.5)
+            time.sleep(5 + (random.random() * random.randrange(-1,1)))
 
-        i += 1
+            i += 1
+        except:
+            time.sleep(15)
 
 # //////////////////////////////////////////////////////////////////////////////
 
@@ -138,7 +156,7 @@ def job_niggers():
     while True:
         slaves_list = do_start()
         slaves_to_job = get_slaves_to_job(slaves_list)
-        print(f'[JOB] > Найдно {len(slaves_to_job)} безработных рабов')
+        print_log(f'[{datetime.datetime.now().strftime("%d-%m-%Y %H:%M")}][JOB] > Найдно {len(slaves_to_job)} безработных рабов')
         
         random.shuffle(slaves_to_job)
 
@@ -146,7 +164,7 @@ def job_niggers():
             make_job(slave)
 
             if (debug):
-                print(f'[DEBUG] >>> выдал работу {slave}')
+                print_log(f'[{datetime.datetime.now().strftime("%d-%m-%Y %H:%M")}][DEBUG] >>> выдал работу {slave}')
 
             time.sleep(random.randrange(0, 3) + random.random() * 2.5)
         else:         
@@ -164,7 +182,7 @@ def fet_niggers():
     while True:
         slaves_list = do_start()
         slaves_to_fetter = get_slaves_to_fetter(slaves_list)
-        print(f'[FET] > Найдено {len(slaves_to_fetter)} рабов без цепей')
+        print_log(f'[{datetime.datetime.now().strftime("%d-%m-%Y %H:%M")}][FET] > Найдено {len(slaves_to_fetter)} рабов без цепей')
 
         random.shuffle(slaves_to_fetter)
         
@@ -173,7 +191,7 @@ def fet_niggers():
             fetter(slave)
 
             if (debug):
-                print(f'[DEBUG] >>> кинул цепи на {slave}')
+                print_log(f'[{datetime.datetime.now().strftime("%d-%m-%Y %H:%M")}][DEBUG] >>> кинул цепи на {slave}')
 
             # обход блокировки
             time.sleep((random.randrange(0, 2) + random.randrange(0, 2)) + min(0.9, 145 / len(slaves_to_fetter)))
@@ -205,7 +223,7 @@ def steal_niggers():
             random.shuffle(slaves_to_steal)
 
             if len(slaves_to_steal) > 0:
-                print(f'[TS] > Найдено {len(slaves_to_steal)} раба(ов) для кражи ({target})')
+                print_log(f'[{datetime.datetime.now().strftime("%d-%m-%Y %H:%M")}][TS] > Найдено {len(slaves_to_steal)} раба(ов) для кражи ({target})')
 
             for slave in slaves_to_steal:
                 buy(slave)
@@ -216,7 +234,7 @@ def steal_niggers():
                     time.sleep(random.randrange(2, 3))
 
                 if (debug):
-                    print(f'[DEBUG] >>> украл {slave} у {target}')
+                    print_log(f'[{datetime.datetime.now().strftime("%d-%m-%Y %H:%M")}][DEBUG] >>> украл {slave} у {target}')
 
                 make_job(slave)
 
@@ -226,7 +244,7 @@ def steal_niggers():
 
             time.sleep(random.randrange(3, 5))
         
-        time.sleep(random.randrange(15, 20))
+        time.sleep(random.randrange(settings['steal_target']['PAUSE'], (settings['steal_target']['PAUSE'] + 5)))
 
 # //////////////////////////////////////////////////////////////////////////////
 
@@ -248,7 +266,7 @@ def abuse_niggers():
         if (balance >= settings['abuse_slaves']['MIN_BALANCE']):
 
             if (balance >= 2147000000):
-                print('[ABS] > Максимальный баланс!')
+                print_log('[{datetime.datetime.now().strftime("%d-%m-%Y %H:%M")}][ABS] > Максимальный баланс!')
                 time.sleep(20)
                 continue
 
@@ -275,10 +293,10 @@ def abuse_niggers():
                     s_price = (get_user(slave))['sale_price']
 
                     if (debug):
-                        print(f'[DEBUG] >>> {slave} в процессе абуза [{s_price}р]')
+                        print_log(f'[{datetime.datetime.now().strftime("%d-%m-%Y %H:%M")}][DEBUG] >>> {slave} в процессе абуза [{s_price}р]')
 
                 if (id_used):
-                    print(f'[ABS] > Заабузил {slave}')
+                    print_log(f'[{datetime.datetime.now().strftime("%d-%m-%Y %H:%M")}][ABS] > Заабузил {slave}')
 
                     if (settings['abuse_slaves']['AUTO_FET']):
                         fetter(slave)  
@@ -293,7 +311,7 @@ def abuse_niggers():
                 me = get_user(local_id)
                 balance = me['balance']
         
-        time.sleep(random.randrange(24, 40))
+        time.sleep(random.randrange(settings['abuse_slaves']['PAUSE'], (settings['abuse_slaves']['PAUSE'] + 30)))
 
 # //////////////////////////////////////////////////////////////////////////////
 
@@ -320,7 +338,7 @@ def steal_top():
             random.shuffle(slaves_to_steal)
 
             if len(slaves_to_steal) > 0:
-                print(f'[TOP] > Найдено {len(slaves_to_steal)} раба(ов) для кражи ({target})')
+                print_log(f'[{datetime.datetime.now().strftime("%d-%m-%Y %H:%M")}][TOP] > Найдено {len(slaves_to_steal)} раба(ов) для кражи ({target})')
 
             for slave in slaves_to_steal:
                 buy(slave)
@@ -333,14 +351,14 @@ def steal_top():
                 make_job(slave)
 
                 if (debug):
-                    print(f'[DEBUG] >>> украл {slave} у {target}')
+                    print_log(f'[{datetime.datetime.now().strftime("%d-%m-%Y %H:%M")}][DEBUG] >>> украл {slave} у {target}')
 
                 time.sleep((random.randrange(1, 3) + random.randrange(0, 2)) + min(0.9, 155 / len(slaves_to_steal)))
                 time.sleep(random.random())
 
             time.sleep(random.randrange(2, 4))
 
-        time.sleep(random.randrange(8, 15))
+        time.sleep(random.randrange(settings['steal_top']['PAUSE'], (settings['steal_top']['PAUSE'] + 7)))
 
 # //////////////////////////////////////////////////////////////////////////////
 
@@ -356,10 +374,10 @@ def abuse_unknowns():
 
     while True:
         targets = []
-        [targets.append(random.randrange(min_id, max_id)) for _ in range(1000)]
+        [targets.append(random.randrange(min_id, max_id)) for _ in range(settings['abuse_unknowns']['TR_COUNT'])]
         targets = set(targets)
 
-        print(f'[UNK] > Сгенерировал список из {len(targets)} id')
+        print_log(f'[{datetime.datetime.now().strftime("%d-%m-%Y %H:%M")}][UNK] > Сгенерировал список из {len(targets)} id')
 
         for target in targets:
             info = get_user(target)
@@ -373,9 +391,9 @@ def abuse_unknowns():
                     fetter(target)
 
                 if (debug):
-                    print(f'[DEBUG] >>> (UNK) Купил {target}')
+                    print_log(f'[{datetime.datetime.now().strftime("%d-%m-%Y %H:%M")}][DEBUG] >>> (UNK) Купил {target}')
 
-            time.sleep(random.randrange(0, 2) + random.random())
+            time.sleep(random.randrange(settings['abuse_unknowns']['PAUSE'], (settings['abuse_unknowns']['PAUSE'] + 5)) + random.random())
 
 # //////////////////////////////////////////////////////////////////////////////
 
